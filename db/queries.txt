@@ -1,0 +1,20 @@
+INSERT INTO volunteer_personal_details(jamatkhana_id, jamati_title_id, tkn_number, first_name, last_name, jamati_designation_id, title_id, marital_status,gender,blood_group,middle_name,dob,active,qualification_id,occupation_id)
+VALUES(1, 1, '100', 'alisha', 'virani', 1, 1, 'Single/Unmarried','Female','O+ve','zulfikar','1995-08-30',true,1,1)
+
+INSERT INTO volunteer_contact_details(volunteer_id,mobile_number,whatsapp_number,email_id,city_village,pincode,emergency_contact_number,emergency_contact_relation,emergency_contact_name)
+VALUES(1,'565965','54648','dasds','gfdh','456','132123','Guardian','aaa')
+
+INSERT INTO volunteer_language_proficiency(volunteer_id,languages)
+VALUES(1,'{"english": {"read": 1,"write": 1, "speak":1},"hindi": {"read": 1,"write": 1, "speak":1},"gujarati":{"read": 0,"write": 0, "speak":1}}')
+
+INSERT INTO volunteer_jamati_service(volunteer_id, jamati_organization_id,start_date,end_date)
+VALUES(1,1,'2019-01-01','2020-01-01')
+
+INSERT INTO volunteer_jamati_service(volunteer_id, jamati_organization_id,start_date,end_date)
+VALUES(1,2,'2019-01-11','2020-01-11')
+
+INSERT INTO volunteer_training_details(volunteer_id,jamati_organization_id,training_program_name,certificate_issued)
+VALUES(1,1,'abc',true)
+
+INSERT INTO volunteer_training_details(volunteer_id,jamati_organization_id,training_program_name,certificate_issued)
+VALUES(1,2,'xasxa',false)
