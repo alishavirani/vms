@@ -43,9 +43,14 @@ router.post('/signup', async (req, res) => {
     } catch (err) {
         if (err.code == "23505") {
             res.status(409).send(err);
-        } else {
-            res.status(500).send(err);
+            return;
         }
+        if (err.name === "JsonWebTokenError") {
+            res.status(401).send(err);
+            return;
+        } 
+        res.status(500).send(err);
+        
     }
 });
 

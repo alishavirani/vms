@@ -1,13 +1,15 @@
+const metaData = require("./metadata");
+
 const metaTableNames = ["jamatkhana", "jamati_title", "jamati_designation", "title", "qualification", "occupation", "jamati_organization"];
 const volunteerTableNames = ["volunteer_personal_details", "volunteer_contact_details", "volunteer_language_proficiency", "volunteer_jamati_service", "volunteer_training_details"];
 const usersTable = "users";
 const enums = {
-    "marital_status_enum": ['Single/Unmarried', 'Married', 'Divorced', 'Widowed', 'Separated'],
-    "gender_enum": ['Male', 'Female'],
-    "blood_group_enum": ['A+ve', 'A-ve', 'B+ve', 'B-ve', 'AB+ve', 'AB-ve', 'O+ve', 'O-ve'],
-    "relation_enum": ['Spouse','Father/Mother','Brother/Sister','Guardian'],
-    "designation_enum": ["Member","Co-convenor","Convenor","Faculty/Trainer","In-charge", "Hon. Secretary"],
-    "council_level_enum": ["Jamatkhana","Local Council","Regional Council", "National Council"],
+    "marital_status_enum": ['Single/Unmarried', 'Married', 'Divorced', 'Widowed', 'Separated', "null"],
+    "gender_enum": ['Male', 'Female', "null"],
+    "blood_group_enum": ['A+ve', 'A-ve', 'B+ve', 'B-ve', 'AB+ve', 'AB-ve', 'O+ve', 'O-ve', "null"],
+    "relation_enum": ['Spouse','Father/Mother','Brother/Sister','Guardian', "null"],
+    "designation_enum": ["Member","Co-convenor","Convenor","Faculty/Trainer","In-charge", "Hon. Secretary", "null"],
+    "council_level_enum": ["Jamatkhana","Local Council","Regional Council", "National Council", "null"],
     "regional_council_enum": ["Western India", "Southern India","CNEI","NEG","NS","SS"]
 };
 
@@ -49,13 +51,13 @@ module.exports.dbInit = async (psClient) => {
                 case "jamati_title":
                     createTableQuery = `CREATE TABLE jamati_title (
                             jamati_title_id SERIAL PRIMARY KEY,
-                            title VARCHAR(100) NOT NULL
+                            jamati_title VARCHAR(100) NOT NULL
                         );`;
                     break;
                 case "jamati_designation":
                     createTableQuery = `CREATE TABLE jamati_designation (
                             jamati_designation_id SERIAL PRIMARY KEY,
-                            designation VARCHAR(100) NOT NULL
+                            jamati_designation VARCHAR(100) NOT NULL
                         );`;
                     break;
                 case "title":
@@ -79,7 +81,7 @@ module.exports.dbInit = async (psClient) => {
                 case "jamati_organization":
                     createTableQuery = `CREATE TABLE jamati_organization (
                             jamati_organization_id SERIAL PRIMARY KEY,
-                            organization VARCHAR(200) NOT NULL
+                            jamati_organization VARCHAR(200) NOT NULL
                         );`;
                     break;
             }
@@ -113,6 +115,8 @@ module.exports.dbInit = async (psClient) => {
                         active BOOLEAN,
                         qualification_id INT,
                         occupation_id INT,
+                        created_by VARCHAR(20),
+                        created_at DATE,
 
                         CONSTRAINT fk_jamatkhana_id
                             FOREIGN KEY(jamatkhana_id) 
@@ -149,6 +153,8 @@ module.exports.dbInit = async (psClient) => {
                         emergency_contact_number VARCHAR(20) NOT NULL,
                         emergency_contact_name VARCHAR(100) NOT NULL,
                         emergency_contact_relation relation_enum,
+                        created_by VARCHAR(20),
+                        created_at DATE,
 
                         CONSTRAINT fk_volunteer_id
                             FOREIGN KEY(volunteer_id)
@@ -203,6 +209,7 @@ module.exports.dbInit = async (psClient) => {
             await psClient.query(createTableQuery);
             console.log(`${table} created`)
         }
+        await insertDataIntoMetaTables(psClient);
     } catch (err) {
         throw err;
     } finally {
@@ -222,4 +229,17 @@ const checkIfTableExists = async (psClient, tableName) => {
     const ifExistsQuery = `SELECT to_regclass('${tableName}');`
     const resp = await psClient.query(ifExistsQuery);
     return resp.rows[0].to_regclass;
+}
+
+const insertDataIntoMetaTables = async (psClient) => {
+    for (const tableName in metaData) {
+        let values = ``;
+        for (const value of metaData[tableName]) {
+            values += `('${value}'),`
+        }
+        values = values.slice(0, -1);
+        const query = `INSERT INTO ${tableName} (${tableName})
+        VALUES ${values};`;
+        await psClient.query(query);
+    }
 }
