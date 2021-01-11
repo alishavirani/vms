@@ -250,6 +250,10 @@ const deleteTablesAndTypes = async (psClient) => {
         const query = `DROP TABLE IF EXISTS ${tableName} CASCADE`;
         await psClient.query(query);
     }
+    for (const tableName of metaTableNames) {
+        const query = `DROP TABLE IF EXISTS ${tableName} CASCADE`;
+        await psClient.query(query);
+    }
     await psClient.query(`DROP TABLE IF EXISTS ${usersTable}`);
 
     for (const typeName in enums) {
