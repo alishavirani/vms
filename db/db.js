@@ -16,6 +16,7 @@ const enums = {
 
 module.exports.dbInit = async (psClient) => {
     try {
+        await deleteTablesAndTypes(psClient); //only for development
         // create necessary enums
         await createEnums(psClient);
 
@@ -242,4 +243,18 @@ const insertDataIntoMetaTables = async (psClient) => {
         VALUES ${values};`;
         await psClient.query(query);
     }
+}
+
+const deleteTablesAndTypes = async (psClient) => {
+    for (const tableName of volunteerTableNames) {
+        const query = `DROP TABLE IF EXISTS ${tableName} CASCADE`;
+        await psClient.query(query);
+    }
+    await psClient.query(`DROP TABLE IF EXISTS ${usersTable}`);
+
+    for (const typeName in enums) {
+        const query = `DROP TYPE IF EXISTS ${typeName}`;
+        await psClient.query(query);
+    }
+    console.log("Tables and types deleted")
 }
