@@ -4,9 +4,9 @@ const express = require('express');
 const router = express.Router();
 
 const volunteer = require("../db/volunteer");
-const config = require("../config");
 const { enums } = require("../db/metadata");
 
+const jwtSecret = process.env.JWT_SECRET;
 const volunteerPersonalDetailsTable = "volunteer_personal_details";
 const volunteerContactDetailsTable = "volunteer_contact_details";
 
@@ -30,8 +30,8 @@ router.post('/add-volunteer', async (req, res) => {
         }
     }
     if (req.body.blood_group) {
-        if (!enums.gender_enum.includes(req.body.blood_group)) {
-            res.status(400).send({ "message": `Invalid value of blood_group. Please select a value from ${enums.gender_enum}` });
+        if (!enums.blood_group_enum.includes(req.body.blood_group)) {
+            res.status(400).send({ "message": `Invalid value of blood_group. Please select a value from ${enums.blood_group_enum}` });
             return;
         }
     }
@@ -42,7 +42,7 @@ router.post('/add-volunteer', async (req, res) => {
         let decodedToken;
         if (token) {
             token = token.split(' ')[1];
-            decodedToken = jwt.verify(token, config.jwtSecret);
+            decodedToken = jwt.verify(token, jwtSecret);
         }
         if (!decodedToken) {
             res.status(400).send({ "message": "Invalid token" });
@@ -130,7 +130,7 @@ router.post('/:volunteer_id/contact-details', async (req, res) => {
         let decodedToken;
         if (token) {
             token = token.split(' ')[1];
-            decodedToken = jwt.verify(token, config.jwtSecret);
+            decodedToken = jwt.verify(token, jwtSecret);
         }
         if (!decodedToken) {
             res.status(400).send({ "message": "Invalid token" });

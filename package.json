@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "xo",
-    "start": "node ./bin/start.js",
-    "dev": "node ./bin/start.js"
+    "start": "node ./app.js",
+    "dev": "node ./app.js"
   },
   "author": "",
   "license": "ISC",

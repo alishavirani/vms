@@ -7,6 +7,10 @@ services:
       DATABASE_URL: postgres://postgres:password@postgres:5432/vms
       NODE_ENV: development
       PORT: 8888
+      SALT_ROUNDS: 10
+      JWT_SECRET: yek-terces-gnol-yrev-a-si-siht
+      JWT_EXPIRY: 9h
+      JWT_ISSUER: vms
     ports:
       - "8888:8888"
     command: bash -c 'while !</dev/tcp/postgres/5432; do sleep 1; done; npm run dev'

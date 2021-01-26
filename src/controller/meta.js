@@ -3,8 +3,9 @@ const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
-const config = require("../config");
 const meta = require("../db/meta");
+
+const jwtSecret = process.env.JWT_SECRET;
 
 router.get('/:tableName', async (req, res) => {
     //validations
@@ -18,7 +19,7 @@ router.get('/:tableName', async (req, res) => {
         let decodedToken;
         if (token) {
             token = token.split(' ')[1];
-            decodedToken = jwt.verify(token, config.jwtSecret);
+            decodedToken = jwt.verify(token, jwtSecret);
         }
         if (!decodedToken) {
             res.status(400).send({ "message": "Invalid token" });

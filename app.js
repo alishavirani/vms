@@ -21,15 +21,8 @@ dbInit()
 
 require('./src/routes').router(app);
 
-let server;
-module.exports = {
-  start(port) {
-    server = app.listen(port, () => {
-      console.log(`App started on port ${port}`);
-    });
-    return app;
-  },
-  stop() {
-    server.close();
-  }
-};
+app.listen(process.env.PORT, () => {
+  console.log('Server is running on port ', process.env.PORT);
+});
+
+module.exports = app;

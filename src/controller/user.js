@@ -5,10 +5,12 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 const user = require("../db/user");
-const config = require("../config");
 const metaData = require("../db/metadata")
 
-const saltRounds = config.saltRounds;
+const saltRounds = parseInt(process.env.SALT_ROUNDS);
+const jwtSecret = process.env.JWT_SECRET;
+const jwtExpiry = process.env.JWT_EXPIRY;
+const jwtIssuer = process.env.JWT_ISSUER;
 
 router.post('/signup', async (req, res) => {
     //validations
@@ -27,7 +29,7 @@ router.post('/signup', async (req, res) => {
         let decodedToken;
         if (token) {
             token = token.split(' ')[1];
-            decodedToken = jwt.verify(token, config.jwtSecret);
+            decodedToken = jwt.verify(token, jwtSecret);
         }
 
         //hash password
@@ -79,9 +81,9 @@ router.post('/login', async (req, res) => {
         }
 
         //generate jwt token
-        const token = jwt.sign({ userid: req.body.userid }, config.jwtSecret, {
-            expiresIn: config.jwtExpiry,
-            issuer: config.jwtIssuer
+        const token = jwt.sign({ userid: req.body.userid }, jwtSecret, {
+            expiresIn: jwtExpiry,
+            issuer: jwtIssuer
         });
         res.send({
             "message": "Login successful",
