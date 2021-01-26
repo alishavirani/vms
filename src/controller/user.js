@@ -6,14 +6,14 @@ const router = express.Router();
 
 const user = require("../db/user");
 const config = require("../config");
+const metaData = require("../db/metadata")
 
 const saltRounds = config.saltRounds;
-const regionalCouncils = ["Western India", "Southern India", "CNEI", "NEG", "NS", "SS"];
 
 router.post('/signup', async (req, res) => {
     //validations
     if (req.body && req.body.userid && req.body.password && req.body.regional_council) {
-        if (!regionalCouncils.includes(req.body.regional_council)) {
+        if (!metaData.regionalCouncils.includes(req.body.regional_council)) {
             res.status(400).send({ "message": `Invalid value of regional_council. Please select from "Western India", "Southern India","CNEI","NEG","NS","SS"` });
             return;
         }
@@ -48,9 +48,12 @@ router.post('/signup', async (req, res) => {
         if (err.name === "JsonWebTokenError") {
             res.status(401).send(err);
             return;
-        } 
+        }
+        if (err.name === "TokenExpiredError") {
+            res.status(401).send(err);
+            return;
+        }
         res.status(500).send(err);
-        
     }
 });
 

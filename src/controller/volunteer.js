@@ -5,11 +5,8 @@ const router = express.Router();
 
 const volunteer = require("../db/volunteer");
 const config = require("../config");
+const { enums } = require("../db/metadata");
 
-const marital_status_enum = ['Single/Unmarried', 'Married', 'Divorced', 'Widowed', 'Separated'];
-const gender_enum = ['Male', 'Female'];
-const blood_group_enum = ['A+ve', 'A-ve', 'B+ve', 'B-ve', 'AB+ve', 'AB-ve', 'O+ve', 'O-ve'];
-const relation_enum = ['Spouse', 'Father/Mother', 'Brother/Sister', 'Guardian'];
 const volunteerPersonalDetailsTable = "volunteer_personal_details";
 const volunteerContactDetailsTable = "volunteer_contact_details";
 
@@ -21,20 +18,20 @@ router.post('/add-volunteer', async (req, res) => {
         return;
     }
     if (req.body.marital_status) {
-        if (!marital_status_enum.includes(req.body.marital_status)) {
-            res.status(400).send({ "message": `Invalid value of marital_status. Please select a value from ${marital_status_enum}` });
+        if (!enums.marital_status_enum.includes(req.body.marital_status)) {
+            res.status(400).send({ "message": `Invalid value of marital_status. Please select a value from ${enums.marital_status_enum}` });
             return;
         }
     }
     if (req.body.gender) {
-        if (!gender_enum.includes(req.body.gender)) {
-            res.status(400).send({ "message": `Invalid value of gender. Please select a value from ${gender_enum}` });
+        if (!enums.gender_enum.includes(req.body.gender)) {
+            res.status(400).send({ "message": `Invalid value of gender. Please select a value from ${enums.gender_enum}` });
             return;
         }
     }
     if (req.body.blood_group) {
-        if (!blood_group_enum.includes(req.body.blood_group)) {
-            res.status(400).send({ "message": `Invalid value of blood_group. Please select a value from ${blood_group_enum}` });
+        if (!enums.gender_enum.includes(req.body.blood_group)) {
+            res.status(400).send({ "message": `Invalid value of blood_group. Please select a value from ${enums.gender_enum}` });
             return;
         }
     }
@@ -100,6 +97,10 @@ router.post('/add-volunteer', async (req, res) => {
             res.status(401).send(err);
             return;
         }
+        if (err.name === "TokenExpiredError") {
+            res.status(401).send(err);
+            return;
+        }
         console.log("error:", err)
         res.status(500).send(err);
     }
@@ -117,8 +118,8 @@ router.post('/:volunteer_id/contact-details', async (req, res) => {
         return;
     }
     if (req.body.emergency_contact_relation) {
-        if (!relation_enum.includes(req.body.emergency_contact_relation)) {
-            res.status(400).send({ "message": `Invalid value of emergency_contact_relation. Please select a value from ${relation_enum}` });
+        if (!enums.relation_enum.includes(req.body.emergency_contact_relation)) {
+            res.status(400).send({ "message": `Invalid value of emergency_contact_relation. Please select a value from ${enums.relation_enum}` });
             return;
         }
     }
@@ -173,6 +174,10 @@ router.post('/:volunteer_id/contact-details', async (req, res) => {
         })
     } catch (err) {
         if (err.name === "JsonWebTokenError") {
+            res.status(401).send(err);
+            return;
+        }
+        if (err.name === "TokenExpiredError") {
             res.status(401).send(err);
             return;
         }

@@ -1,14 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const client = require('./connection');
 
-const { dbInit } = require("./db/db");
-const config = require("./config");
+const { dbInit } = require("./src/db/db");
 
 const app = express();
-
-//Connect to db
-client.connect();
 
 app.use(bodyParser.json());
 
@@ -17,17 +12,24 @@ app.use(bodyParser.urlencoded({
 }));
 
 // Handle db connection and db creation here
-dbInit(client)
+dbInit()
     .then(() => console.log("Db connect success"))
     .catch((err) => {
         console.log("Error in connecting to db",err);
         process.exit(1);
     });
 
-require('./routes').router(app);
+require('./src/routes').router(app);
 
-app.listen(config.port, () => {
-    console.log('Server is running on port ', config.port);
-});
-
-module.exports = app;
+let server;
+module.exports = {
+  start(port) {
+    server = app.listen(port, () => {
+      console.log(`App started on port ${port}`);
+    });
+    return app;
+  },
+  stop() {
+    server.close();
+  }
+};

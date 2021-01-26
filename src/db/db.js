@@ -1,29 +1,18 @@
 const metaData = require("./metadata");
-
-const metaTableNames = ["jamatkhana", "jamati_title", "jamati_designation", "title", "qualification", "occupation", "jamati_organization"];
-const volunteerTableNames = ["volunteer_personal_details", "volunteer_contact_details", "volunteer_language_proficiency", "volunteer_jamati_service", "volunteer_training_details"];
-const usersTable = "users";
-const enums = {
-    "marital_status_enum": ['Single/Unmarried', 'Married', 'Divorced', 'Widowed', 'Separated', "null"],
-    "gender_enum": ['Male', 'Female', "null"],
-    "blood_group_enum": ['A+ve', 'A-ve', 'B+ve', 'B-ve', 'AB+ve', 'AB-ve', 'O+ve', 'O-ve', "null"],
-    "relation_enum": ['Spouse','Father/Mother','Brother/Sister','Guardian', "null"],
-    "designation_enum": ["Member","Co-convenor","Convenor","Faculty/Trainer","In-charge", "Hon. Secretary", "null"],
-    "council_level_enum": ["Jamatkhana","Local Council","Regional Council", "National Council", "null"],
-    "regional_council_enum": ["Western India", "Southern India","CNEI","NEG","NS","SS"]
-};
+const pool = require("../connection");
 
 
-module.exports.dbInit = async (psClient) => {
+module.exports.dbInit = async () => {
     try {
+        const psClient = await pool.connect();
         await deleteTablesAndTypes(psClient); //only for development
         // create necessary enums
         await createEnums(psClient);
 
         //create users table
-        const tableExists = await checkIfTableExists(psClient, usersTable);
+        const tableExists = await checkIfTableExists(psClient, metaData.usersTable);
         if (!tableExists) {
-            const createTableQuery = `CREATE TABLE ${usersTable} (
+            const createTableQuery = `CREATE TABLE ${metaData.usersTable} (
                 userid VARCHAR(50) PRIMARY KEY NOT NULL,
                 password varchar NOT NULL,
                 regional_council regional_council_enum NOT NULL,
@@ -31,11 +20,11 @@ module.exports.dbInit = async (psClient) => {
                 created_at DATE
             );`;
             await psClient.query(createTableQuery);
-            console.log(`${usersTable} created`);
+            console.log(`${metaData.usersTable} created`);
         }
 
         //create meta tables
-        for (const table of metaTableNames) {
+        for (const table of metaData.metaTableNames) {
             const tableExists = await checkIfTableExists(psClient, table);
             if (tableExists) {
                 continue;
@@ -91,7 +80,7 @@ module.exports.dbInit = async (psClient) => {
         }
 
         //volunteer tables
-        for (const table of volunteerTableNames) {
+        for (const table of metaData.volunteerTableNames) {
             const tableExists = await checkIfTableExists(psClient, table);
             if (tableExists) {
                 continue;
@@ -219,8 +208,8 @@ module.exports.dbInit = async (psClient) => {
 }
 
 const createEnums = async (psClient) => {
-    for (const en in enums) {
-        const values = Object.values(enums[en]).map(val => `'${val}'`);
+    for (const en in metaData.enums) {
+        const values = Object.values(metaData.enums[en]).map(val => `'${val}'`);
         const createEnumQuery = `CREATE TYPE ${en} as ENUM(${values})`;
         await psClient.query(createEnumQuery);
     }
@@ -233,9 +222,9 @@ const checkIfTableExists = async (psClient, tableName) => {
 }
 
 const insertDataIntoMetaTables = async (psClient) => {
-    for (const tableName in metaData) {
+    for (const tableName in metaData.metaTableData) {
         let values = ``;
-        for (const value of metaData[tableName]) {
+        for (const value of metaData.metaTableData[tableName]) {
             values += `('${value}'),`
         }
         values = values.slice(0, -1);
@@ -246,17 +235,17 @@ const insertDataIntoMetaTables = async (psClient) => {
 }
 
 const deleteTablesAndTypes = async (psClient) => {
-    for (const tableName of volunteerTableNames) {
+    for (const tableName of metaData.volunteerTableNames) {
         const query = `DROP TABLE IF EXISTS ${tableName} CASCADE`;
         await psClient.query(query);
     }
-    for (const tableName of metaTableNames) {
+    for (const tableName of metaData.metaTableNames) {
         const query = `DROP TABLE IF EXISTS ${tableName} CASCADE`;
         await psClient.query(query);
     }
-    await psClient.query(`DROP TABLE IF EXISTS ${usersTable}`);
+    await psClient.query(`DROP TABLE IF EXISTS ${metaData.usersTable}`);
 
-    for (const typeName in enums) {
+    for (const typeName in metaData.enums) {
         const query = `DROP TYPE IF EXISTS ${typeName}`;
         await psClient.query(query);
     }
