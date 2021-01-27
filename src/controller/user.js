@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 const user = require("../db/user");
-const metaData = require("../db/metadata")
+const metaData = require("../db/metadata");
 
 const saltRounds = parseInt(process.env.SALT_ROUNDS);
 const jwtSecret = process.env.JWT_SECRET;
@@ -30,6 +30,14 @@ router.post('/signup', async (req, res) => {
         if (token) {
             token = token.split(' ')[1];
             decodedToken = jwt.verify(token, jwtSecret);
+        }
+        if (decodedToken) {
+            //verify userid from decodedtoken
+            const userFound = await user.checkIfUserExists(decodedToken.userid);
+            if (!userFound) {
+                res.status(401).send({ "message": "Invalid token" });
+                return;
+            }
         }
 
         //hash password

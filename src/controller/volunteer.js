@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 
 const volunteer = require("../db/volunteer");
+const user = require("../db/user");
 const { enums } = require("../db/metadata");
 
 const jwtSecret = process.env.JWT_SECRET;
@@ -46,6 +47,12 @@ router.post('/add-volunteer', async (req, res) => {
         }
         if (!decodedToken) {
             res.status(400).send({ "message": "Invalid token" });
+            return;
+        }
+        //verify userid from decodedtoken
+        const userFound = await user.checkIfUserExists(decodedToken.userid);
+        if (!userFound) {
+            res.status(401).send({ "message": "Invalid token" });
             return;
         }
 
@@ -134,6 +141,13 @@ router.post('/:volunteer_id/contact-details', async (req, res) => {
         }
         if (!decodedToken) {
             res.status(400).send({ "message": "Invalid token" });
+            return;
+        }
+
+        //verify userid from decodedtoken
+        const userFound = await user.checkIfUserExists(decodedToken.userid);
+        if (!userFound) {
+            res.status(401).send({ "message": "Invalid token" });
             return;
         }
 

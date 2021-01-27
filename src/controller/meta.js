@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 const meta = require("../db/meta");
+const user = require("../db/user");
 
 const jwtSecret = process.env.JWT_SECRET;
 
@@ -23,6 +24,12 @@ router.get('/:tableName', async (req, res) => {
         }
         if (!decodedToken) {
             res.status(400).send({ "message": "Invalid token" });
+            return;
+        }
+        //verify userid from decodedtoken
+        const userFound = await user.checkIfUserExists(decodedToken.userid);
+        if (!userFound) {
+            res.status(401).send({ "message": "Invalid token" });
             return;
         }
         const data = await meta.getAllRecords(req.params.tableName);

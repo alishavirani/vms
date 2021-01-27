@@ -27,3 +27,16 @@ module.exports.getHashPw = async(userid) => {
 
     }
 }
+
+module.exports.checkIfUserExists = async (id) => {
+    try {
+        const query = `SELECT * FROM users where userid='${id}';`;
+        const record = await client.query(query);
+        const found = record.rowCount ? true : false;
+        return found;
+    } catch(err) {
+        throw err;
+    } finally {
+
+    }
+}
