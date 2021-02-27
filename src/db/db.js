@@ -1,7 +1,6 @@
 const metaData = require("./metadata");
 const pool = require("../connection");
 
-
 module.exports.dbInit = async () => {
     try {
         const psClient = await pool.connect();
@@ -35,7 +34,8 @@ module.exports.dbInit = async () => {
                 case "jamatkhana":
                     createTableQuery = `CREATE TABLE jamatkhana (
                             jamatkhana_id SERIAL PRIMARY KEY,
-                            jamatkhana VARCHAR NOT NULL
+                            jamatkhana VARCHAR NOT NULL,
+                            regional_council regional_council_enum NOT NULL
                         );`;
                     break;
                 case "jamati_title":
@@ -200,6 +200,7 @@ module.exports.dbInit = async () => {
             console.log(`${table} created`)
         }
         await insertDataIntoMetaTables(psClient);
+        await insertVolunteersData(psClient);
     } catch (err) {
         throw err;
     } finally {
@@ -222,7 +223,21 @@ const checkIfTableExists = async (psClient, tableName) => {
 }
 
 const insertDataIntoMetaTables = async (psClient) => {
+    if (metaData.metaTableData.jamatkhana) {
+        let values = ``;
+        for (const jk of metaData.metaTableData.jamatkhana) {
+            values += `('${jk.jamatkhana}', '${jk.regional_council}'),`
+        }
+        values = values.slice(0, -1);
+        const query = `INSERT INTO jamatkhana (jamatkhana, regional_council)
+        VALUES ${values};`
+        await psClient.query(query);
+    }
+
     for (const tableName in metaData.metaTableData) {
+        if (tableName === "jamatkhana") {
+            continue;
+        };
         let values = ``;
         for (const value of metaData.metaTableData[tableName]) {
             values += `('${value}'),`
@@ -250,4 +265,24 @@ const deleteTablesAndTypes = async (psClient) => {
         await psClient.query(query);
     }
     console.log("Tables and types deleted")
+}
+
+const insertVolunteersData = async (psClient) => {
+    for (const vol of metaData.volunteerPersonalData) {
+        let query = `INSERT INTO volunteer_personal_details (jamatkhana_id, first_name, last_name, dob, gender)
+        VALUES ('${vol.jamatkhana_id}', '${vol.first_name}', '${vol.last_name}', '${vol.dob}','${vol.gender}')`;
+        await psClient.query(query);
+
+        query = `SELECT * FROM volunteer_personal_details;`
+        await psClient.query(query);
+    }
+
+    for (vol of metaData.volunteerContactDetails) {
+        let query = `INSERT INTO volunteer_contact_details (volunteer_id, mobile_number, whatsapp_number, email_id, city_village, pincode, emergency_contact_number, emergency_contact_name)
+        VALUES ('${vol.volunteer_id}', '${vol.mobile_number}', '${vol.whatsapp_number}', '${vol.email_id}','${vol.city_village}','${vol.pincode}','${vol.emergency_contact_number}','${vol.emergency_contact_name}')`;
+        await psClient.query(query);
+
+        query = `SELECT * FROM volunteer_contact_details;`
+        await psClient.query(query);
+    }    
 }

@@ -76,3 +76,43 @@ module.exports.insertVolunteersContactDetails = async(data) => {
 
     }
 }
+
+module.exports.getVolunteersByRegionalCouncil = async (regionalCouncil) => {
+    try {
+        //get distinct jamatkhanas for a regional council
+        let query = `SELECT DISTINCT jamatkhana_id FROM jamatkhana WHERE regional_council='${regionalCouncil}'`;
+        let response = await client.query(query);
+        const jkIds = response.rows.map(row => row.jamatkhana_id);
+
+        //get volunteers for these jks
+        query = `SELECT volunteer_id, first_name, last_name, dob, gender, jamatkhana_id FROM volunteer_personal_details WHERE jamatkhana_id IN (${jkIds.map(id => `'${id}'`)})`
+        response = await client.query(query);
+        let volunteers = response.rows;
+        
+        const volunteersData = await Promise.all(volunteers.map(async volunteer => {
+            let query = `SELECT mobile_number, email_id FROM volunteer_contact_details WHERE volunteer_id='${volunteer.volunteer_id}'`;
+            let response = await client.query(query);
+            const contactDetails = response.rows[0];
+
+            //get jamatkhana by id
+            query = `SELECT jamatkhana FROM jamatkhana WHERE jamatkhana_id='${volunteer.jamatkhana_id}'`
+            response = await client.query(query);
+            const jamatkhana = response.rows[0].jamatkhana;
+
+            return {
+                id: volunteer.volunteer_id,
+                name: `${volunteer.first_name} ${volunteer.last_name}`,
+                jamatkhana,
+                dob: volunteer.dob,
+                gender: volunteer.gender,
+                mobileNumber: contactDetails.mobile_number,
+                emailId: contactDetails.email_id
+            }
+        }));
+        return volunteersData;    
+    } catch (err) {
+        throw err;
+    } finally {
+
+    }
+}

@@ -116,7 +116,7 @@ router.post('/add-volunteer', async (req, res) => {
 router.post('/:volunteer_id/contact-details', async (req, res) => {
     //validations
     if (!req.params) {
-        res.status(400).send({"message": `Please use a query param value /:volunteer_id/contact-details`});
+        res.status(400).send({ "message": `Please use a query param value /:volunteer_id/contact-details` });
         return;
     }
 
@@ -177,7 +177,7 @@ router.post('/:volunteer_id/contact-details', async (req, res) => {
         if (!found) {
             res.status(404).send({ "message": `ID ${req.params.volunteer_id} not found in ${volunteerPersonalDetailsTable} table` });
             return;
-        }    
+        }
         dbData["volunteer_id"] = req.params.volunteer_id;
 
         const response = await volunteer.insertVolunteersContactDetails(dbData);
@@ -199,5 +199,42 @@ router.post('/:volunteer_id/contact-details', async (req, res) => {
         res.status(500).send(err);
     }
 });
+
+router.get('/', async (req, res) => {
+    try {
+        let token = req.headers["authorization"];
+        let decodedToken;
+        if (token) {
+            token = token.split(' ')[1];
+            decodedToken = jwt.verify(token, jwtSecret);
+        }
+        if (!decodedToken) {
+            res.status(400).send({ "message": "Invalid token" });
+            return;
+        }
+        //verify userid from decodedtoken
+        const userFound = await user.checkIfUserExists(decodedToken.userid);
+        if (!userFound) {
+            res.status(401).send({ "message": "Invalid token" });
+            return;
+        }
+        const regionalCouncil = await user.getRegionalCouncil(decodedToken.userid);
+        console.log(regionalCouncil)
+
+        const volunteers = await volunteer.getVolunteersByRegionalCouncil(regionalCouncil);
+        res.send(volunteers);
+    } catch (err) {
+        if (err.name === "JsonWebTokenError") {
+            res.status(401).send(err);
+            return;
+        }
+        if (err.name === "TokenExpiredError") {
+            res.status(401).send(err);
+            return;
+        }
+        console.log("error:", err)
+        res.status(500).send(err);
+    }
+})
 
 module.exports = router;

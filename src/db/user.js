@@ -32,8 +32,21 @@ module.exports.checkIfUserExists = async (id) => {
     try {
         const query = `SELECT * FROM users where userid='${id}';`;
         const record = await client.query(query);
-        const found = record.rowCount ? true : false;
-        return found;
+        return record.rowCount ? true : false;
+    } catch(err) {
+        throw err;
+    } finally {
+
+    }
+}
+
+module.exports.getRegionalCouncil = async (userId) => {
+    try {
+        const query = `SELECT regional_council FROM users WHERE userid='${userId}';`
+        const response = await client.query(query);
+        if (response.rows.length) {
+            return response.rows[0].regional_council;
+        }
     } catch(err) {
         throw err;
     } finally {
