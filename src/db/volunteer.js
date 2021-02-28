@@ -105,11 +105,11 @@ module.exports.getVolunteersByRegionalCouncil = async (regionalCouncil) => {
                 jamatkhana,
                 dob: volunteer.dob,
                 gender: volunteer.gender,
-                mobileNumber: contactDetails.mobile_number,
-                emailId: contactDetails.email_id
+                mobileNumber: contactDetails ? contactDetails.mobile_number : null,
+                emailId: contactDetails ? contactDetails.emailId : null
             }
         }));
-        return volunteersData;    
+        return volunteersData;
     } catch (err) {
         throw err;
     } finally {

@@ -219,8 +219,6 @@ router.get('/', async (req, res) => {
             return;
         }
         const regionalCouncil = await user.getRegionalCouncil(decodedToken.userid);
-        console.log(regionalCouncil)
-
         const volunteers = await volunteer.getVolunteersByRegionalCouncil(regionalCouncil);
         res.send(volunteers);
     } catch (err) {
